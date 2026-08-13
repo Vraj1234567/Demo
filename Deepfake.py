@@ -98,18 +98,6 @@ if not os.path.exists("Deepfake_model.keras"):
 # ----------------------
 model = keras.models.load_model("Deepfake_model.keras")
 
-# ----------------------
-# Streamlit App
-# ----------------------
-st.title("DeepFake Image Detection")
-st.write("Upload an image to predict whether it is Real or Fake.")
-
-# Upload image
-uploaded_file = st.file_uploader(
-    "Choose an image",
-    type=["jpg", "jpeg", "png"]
-)
-
 if uploaded_file is not None:
     # Open image with PIL
     image = Image.open(uploaded_file).convert("RGB")

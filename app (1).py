@@ -1,45 +1,61 @@
-import streamlit as st
+import os
 import sqlite3
 import cv2
 import numpy as np
-from tensorflow import keras
 from PIL import Image
-import os
+import streamlit as st
+from tensorflow import keras
 
-# Initialize database
+# Set page config
+st.set_page_config(page_title="DeepFake Face Classification", layout="wide")
+
+# ---------------- DATABASE SETUP ----------------
 conn = sqlite3.connect('users.db', check_same_thread=False)
 c = conn.cursor()
-c.execute('''CREATE TABLE IF NOT EXISTS users
-(id INTEGER PRIMARY KEY, name TEXT, city TEXT, email TEXT UNIQUE, mobile TEXT, password TEXT)''')
+c.execute('''
+CREATE TABLE IF NOT EXISTS users
+(id INTEGER PRIMARY KEY, name TEXT, city TEXT, email TEXT UNIQUE, mobile TEXT, password TEXT)
+''')
 conn.commit()
 
 # Admin credentials
 ADMIN_EMAIL = 'admin@admin.com'
 ADMIN_PASS = 'admin123'
 
-# Sidebar menu
-menu = st.sidebar.selectbox("Navigate", ["Home", "Register", "Login"])
+# Initialize session states
+if 'logged_in' not in st.session_state:
+    st.session_state['logged_in'] = False
+if 'user_role' not in st.session_state:
+    st.session_state['user_role'] = None
+if 'user_name' not in st.session_state:
+    st.session_state['user_name'] = ""
 
-# Home page
+# ---------------- CACHED MODEL LOADING ----------------
+@st.cache_resource
+def load_deepfake_model():
+    model_path = "Deep_model.keras"
+    if not os.path.exists(model_path):
+        import gdown
+        gdown.download(
+            id="1MvQFRlMsv6BJh94y_7vpNMnJ_YJqI_PK",
+            output=model_path,
+            quiet=False
+        )
+    return keras.models.load_model(model_path)
+
+
 # ---------------- CUSTOM CSS ----------------
-
 st.markdown(
     '''
     <style>
-
-    /* Main Background and Text */
     .stApp {
         background-color: #0b0e14;
         color: #e1e2e4;
     }
-
-    /* Typography */
     h1, h2, h3 {
         color: #ffffff;
         font-family: 'Inter', sans-serif;
     }
-
-    /* Buttons */
     .stButton > button {
         background-color: #00d2ff;
         color: #0b0e14;
@@ -47,12 +63,9 @@ st.markdown(
         border-radius: 4px;
         border: none;
     }
-
     .stButton > button:hover {
         background-color: #00a8cc;
     }
-
-    /* Feature Cards */
     .feature-card {
         background-color: #191c22;
         padding: 24px;
@@ -60,135 +73,75 @@ st.markdown(
         border: 1px solid rgba(133, 142, 161, 0.2);
         text-align: center;
     }
-
     .feature-icon {
         font-size: 2rem;
         color: #00d2ff;
         margin-bottom: 12px;
     }
-
-    /* Status Bar */
-    .status-bar {
-        font-family: 'Courier New', monospace;
-        font-size: 0.8rem;
-        color: #858ea1;
-        padding-top: 20px;
-        margin-top: 40px;
-    }
-
     </style>
     ''',
     unsafe_allow_html=True
 )
 
-# ---------------- LOGIN AUTHENTICATION ----------------
+# ---------------- NAVIGATION ----------------
+menu = st.sidebar.selectbox("Navigate", ["Home", "Register", "Login"])
 
-if menu == 'Login' and not st.session_state.get('logged_in'):
-
-    st.subheader('Authentication')
-
-    login_email = st.text_input('Email Address')
-    login_password = st.text_input('Access Key', type='password')
-
-    if st.button('Authorize Access'):
-
-        if login_email == ADMIN_EMAIL and login_password == ADMIN_PASS:
-
-            st.session_state['logged_in'] = True
-            st.session_state['user_role'] = 'admin'
-
-            st.success('Admin Login Successful')
-
-        else:
-
-            c.execute(
-                'SELECT * FROM users WHERE email=? AND password=?',
-                (login_email, login_password)
-            )
-
-            user = c.fetchone()
-
-            if user:
-
-                st.session_state['logged_in'] = True
-                st.session_state['user_role'] = 'user'
-                st.session_state['user_name'] = user[1]
-
-                st.success('User Login Successful')
-
-            else:
-
-                st.error('Access Denied: Invalid Credentials')
+if st.session_state['logged_in']:
+    st.sidebar.markdown(f"**Logged in as:** {st.session_state['user_role'].capitalize()}")
+    if st.sidebar.button("Logout"):
+        st.session_state['logged_in'] = False
+        st.session_state['user_role'] = None
+        st.session_state['user_name'] = ""
+        st.rerun()
 
 # ---------------- HOME PAGE ----------------
-
 if menu == 'Home':
-
     st.title('DeepFake Face Classification')
+    st.markdown('DETECT WHETHER A FACE IMAGE IS REAL OR DEEPFAKE USING ADVANCED DEEP LEARNING TECHNIQUES')
 
-    st.markdown(
-        'DETECT WHETHER A FACE IMAGE IS REAL OR DEEPFAKE USING ADVANCED DEEP LEARNING TECHNIQUES'
-    )
-
-    st.image(
-        'screen.png',
-        caption='VERTEX_SCANNING: NEURAL ARCHITECTURE VISUALIZATION',
-        width=900      # safer for older Streamlit versions
-    )
+    if os.path.exists('screen.png'):
+        st.image('screen.png', caption='VERTEX_SCANNING: NEURAL ARCHITECTURE VISUALIZATION', width=900)
 
     st.markdown('<br>', unsafe_allow_html=True)
-
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        st.markdown(
-            '''
+        st.markdown('''
             <div class="feature-card">
                 <div class="feature-icon">🧠</div>
                 <h4>Deep Learning</h4>
                 <p><small>Built with CNNs for accurate DeepFake detection</small></p>
             </div>
-            ''',
-            unsafe_allow_html=True
-        )
+        ''', unsafe_allow_html=True)
 
     with col2:
-        st.markdown(
-            '''
+        st.markdown('''
             <div class="feature-card">
                 <div class="feature-icon">🔍</div>
                 <h4>Image Analysis</h4>
                 <p><small>Advanced preprocessing and feature extraction</small></p>
             </div>
-            ''',
-            unsafe_allow_html=True
-        )
+        ''', unsafe_allow_html=True)
 
     with col3:
-        st.markdown(
-            '''
+        st.markdown('''
             <div class="feature-card">
                 <div class="feature-icon">🛡️</div>
                 <h4>High Accuracy</h4>
                 <p><small>Trained on diverse datasets for reliable classification</small></p>
             </div>
-            ''',
-            unsafe_allow_html=True
-        )
+        ''', unsafe_allow_html=True)
 
     with col4:
-        st.markdown(
-            '''
+        st.markdown('''
             <div class="feature-card">
                 <div class="feature-icon">⚡</div>
                 <h4>Real-time Prediction</h4>
                 <p><small>Optimized pipeline for instant results</small></p>
             </div>
-            ''',
-            unsafe_allow_html=True
-        )
+        ''', unsafe_allow_html=True)
 
-# Register page
+# ---------------- REGISTER PAGE ----------------
 elif menu == "Register":
     st.title("User Registration")
 
@@ -213,97 +166,87 @@ elif menu == "Register":
                         (name, city, email, mobile, password)
                     )
                     conn.commit()
-                    st.success("Registered successfully! Please log in.")
+                    st.success("Registered successfully! Please navigate to Login.")
                 except sqlite3.IntegrityError:
                     st.error("Email already registered.")
 
-# Sidebar login
-if menu == "Login":
-    st.sidebar.markdown("### User/Admin Login")
-    login_email = st.sidebar.text_input("Email")
-    login_password = st.sidebar.text_input("Password", type="password")
+# ---------------- LOGIN & DASHBOARD PAGE ----------------
+elif menu == "Login":
+    if not st.session_state['logged_in']:
+        st.subheader('Authentication')
 
-    if st.sidebar.checkbox("Login"):
+        login_email = st.text_input('Email Address')
+        login_password = st.text_input('Password / Access Key', type='password')
 
-        if login_email == ADMIN_EMAIL and login_password == ADMIN_PASS:
-            st.success("Logged in as Admin!")
-            st.title("Admin Panel - User Management")
+        if st.button('Authorize Access'):
+            if login_email == ADMIN_EMAIL and login_password == ADMIN_PASS:
+                st.session_state['logged_in'] = True
+                st.session_state['user_role'] = 'admin'
+                st.rerun()
+            else:
+                c.execute('SELECT * FROM users WHERE email=? AND password=?', (login_email, login_password))
+                user = c.fetchone()
+                if user:
+                    st.session_state['logged_in'] = True
+                    st.session_state['user_role'] = 'user'
+                    st.session_state['user_name'] = user[1]
+                    st.rerun()
+                else:
+                    st.error('Access Denied: Invalid Credentials')
 
-            c.execute("SELECT id, name, city, email, mobile FROM users")
-            users = c.fetchall()
+    # ADMIN DASHBOARD
+    elif st.session_state['user_role'] == 'admin':
+        st.title("Admin Panel - User Management")
 
-            for user in users:
-                user_id, name, city, email, mobile = user
+        c.execute("SELECT id, name, city, email, mobile FROM users")
+        users = c.fetchall()
+
+        if not users:
+            st.info("No registered users found.")
+
+        for user in users:
+            user_id, name, city, email, mobile = user
+            col_info, col_btn = st.columns([4, 1])
+            with col_info:
                 st.write(f"**{name}** | {email} | {city} | {mobile}")
-
-                if st.button(f"Delete {email}", key=user_id):
+            with col_btn:
+                if st.button(f"Delete", key=f"del_{user_id}"):
                     c.execute("DELETE FROM users WHERE id=?", (user_id,))
                     conn.commit()
                     st.success(f"User {email} deleted.")
-                    st.experimental_rerun()
+                    st.rerun()
 
-        else:
-            c.execute(
-                "SELECT * FROM users WHERE email=? AND password=?",
-                (login_email, login_password)
-            )
-            user = c.fetchone()
+    # USER DASHBOARD
+    elif st.session_state['user_role'] == 'user':
+        st.title(f"Welcome, {st.session_state['user_name']}!")
+        st.subheader("DeepFake Image Detection")
+        st.write("Upload an image to predict whether it is Real or Fake.")
 
-            if user:
-                st.success("Logged in as User!")
-                st.title("User Dashboard")
+        # Load machine learning model
+        with st.spinner("Loading Detection Model..."):
+            model = load_deepfake_model()
 
-                # Download model if not exists
-                if not os.path.exists("Deep_model.keras"):
-                    import gdown
+        uploaded_file = st.file_uploader("Choose an image", type=["jpg", "jpeg", "png"])
 
-                    gdown.download(
-                        id="1MvQFRlMsv6BJh94y_7vpNMnJ_YJqI_PK",
-                        output="Deep_model.keras",
-                        quiet=False
-                    )
+        if uploaded_file is not None:
+            image = Image.open(uploaded_file).convert("RGB")
+            st.image(image, caption="Uploaded Image", use_container_width=True)
 
-                # Load the trained model
-                model = keras.models.load_model("Deep_model.keras")
+            file_bytes = np.frombuffer(uploaded_file.getvalue(), dtype=np.uint8)
+            img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
 
-                # Streamlit App
-                st.title("DeepFake Image Detection")
-                st.write("Upload an image to predict whether it is Real or Fake.")
+            if img is not None:
+                img = cv2.resize(img, (64, 64))
+                img = img.astype("float32") / 255.0
 
-                # Upload image
-                uploaded_file = st.file_uploader(
-                    "Choose an image",
-                    type=["jpg", "jpeg", "png"]
-                )
+                # Predict
+                predictions = model.predict(img.reshape(1, 64, 64, 3))
+                prd = np.argmax(predictions, axis=1)[0]
 
-                if uploaded_file is not None:
-                    # Open image with PIL
-                    image = Image.open(uploaded_file).convert("RGB")
+                classes = ["Real", "Fake"]
+                result = classes[prd]
 
-                    # Display image
-                    st.image(image, caption="Uploaded Image", use_container_width=True)
-
-                    # Read image for OpenCV
-                    file_bytes = np.frombuffer(uploaded_file.getvalue(), dtype=np.uint8)
-                    img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
-
-                    # Check if image is loaded correctly
-                    if img is not None:
-                        # Resize image
-                        img = cv2.resize(img, (64, 64))
-                        img = img.astype("float32") / 255.0
-
-                        # Prediction
-                        prd = np.argmax(
-                            model.predict(img.reshape(1, 64, 64, 3)),
-                            axis=1
-                        )[0]
-
-                        # Class names
-                        classes = ["real", "fake"]
-
-                        # Show result
-                        st.success(classes[prd])
-
-            else:
-                st.error("Invalid credentials.")
+                if result.lower() == "real":
+                    st.success(f"Prediction: **{result}**")
+                else:
+                    st.error(f"Prediction: **{result}**")

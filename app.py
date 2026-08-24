@@ -247,7 +247,7 @@ if menu == "Login":
     login_email = st.sidebar.text_input("Email")
     login_password = st.sidebar.text_input("Password", type="password")
 
-    if st.sidebar.checkbox("Login"):
+    if st.sidebar.selectbox("Login"):
 
         if login_email == ADMIN_EMAIL and login_password == ADMIN_PASS:
             st.success("Logged in as Admin!")

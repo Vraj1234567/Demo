@@ -5,6 +5,7 @@ import numpy as np
 from tensorflow import keras
 from PIL import Image
 import os
+import base64
 
 
 # =========================================================
@@ -12,10 +13,9 @@ import os
 # =========================================================
 
 st.set_page_config(
-    page_title="DeepGuard | DeepFake Detection",
+    page_title="DeepFake Face Classification",
     page_icon="🛡️",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
 
 
@@ -67,63 +67,48 @@ if "user_name" not in st.session_state:
 
 
 # =========================================================
+# BASE64 IMAGE FUNCTION
+# =========================================================
+
+def get_base64(path):
+
+    if not os.path.exists(path):
+        return None
+
+    with open(path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
+
+
+# =========================================================
 # CUSTOM CSS
 # =========================================================
 
 st.markdown(
-    """
+    '''
     <style>
 
     /* =====================================================
-       GLOBAL
+       MAIN BACKGROUND AND TEXT
        ===================================================== */
 
     .stApp {
-        background:
-            radial-gradient(
-                circle at 15% 15%,
-                rgba(0, 210, 255, 0.08),
-                transparent 30%
-            ),
-            radial-gradient(
-                circle at 85% 85%,
-                rgba(0, 120, 255, 0.06),
-                transparent 30%
-            ),
-            #080b11;
-
-        color: #e8edf3;
-    }
-
-    .main .block-container {
-        padding-top: 2rem;
-        padding-bottom: 3rem;
-        max-width: 1250px;
+        background-color: #0b0e14;
+        color: #e1e2e4;
     }
 
 
     /* =====================================================
-       SIDEBAR
+       TYPOGRAPHY
        ===================================================== */
 
-    section[data-testid="stSidebar"] {
-        background: #0d1118;
-        border-right: 1px solid rgba(255,255,255,0.06);
+    h1, h2, h3 {
+        color: #ffffff;
+        font-family: 'Inter', sans-serif;
     }
 
 
-    /* =====================================================
-       HEADINGS
-       ===================================================== */
-
-    h1, h2, h3, h4 {
-        color: #ffffff !important;
-        font-family: "Inter", sans-serif;
-    }
-
-    h1 {
-        font-weight: 800;
-        letter-spacing: -1px;
+    h4 {
+        color: #ffffff;
     }
 
 
@@ -132,154 +117,17 @@ st.markdown(
        ===================================================== */
 
     .stButton > button {
-        width: 100%;
-
-        border: 1px solid
-            rgba(0, 210, 255, 0.25);
-
-        border-radius: 8px;
-
-        background: linear-gradient(
-            135deg,
-            #00d2ff,
-            #0099cc
-        );
-
-        color: #061017;
-
-        font-weight: 700;
-
-        padding: 0.55rem 1rem;
-
-        transition:
-            transform 0.2s ease,
-            box-shadow 0.2s ease;
+        background-color: #00d2ff;
+        color: #0b0e14;
+        font-weight: bold;
+        border-radius: 4px;
+        border: none;
     }
+
 
     .stButton > button:hover {
-        transform: translateY(-2px);
-
-        box-shadow:
-            0 8px 25px
-            rgba(0, 210, 255, 0.18);
-    }
-
-
-    /* =====================================================
-       HERO SECTION
-       ===================================================== */
-
-    .hero {
-        position: relative;
-
-        padding: 55px 45px;
-
-        border-radius: 20px;
-
-        background:
-            linear-gradient(
-                135deg,
-                rgba(0, 210, 255, 0.10),
-                rgba(17, 24, 39, 0.75)
-            );
-
-        border: 1px solid
-            rgba(0, 210, 255, 0.15);
-
-        box-shadow:
-            0 20px 60px
-            rgba(0, 0, 0, 0.25);
-
-        overflow: hidden;
-    }
-
-    .hero::after {
-        content: "";
-
-        position: absolute;
-
-        width: 220px;
-        height: 220px;
-
-        right: -80px;
-        top: -80px;
-
-        border-radius: 50%;
-
-        background:
-            rgba(0, 210, 255, 0.08);
-    }
-
-    .hero-tag {
-        display: inline-block;
-
-        padding: 6px 12px;
-
-        border-radius: 20px;
-
-        background:
-            rgba(0, 210, 255, 0.10);
-
-        border: 1px solid
-            rgba(0, 210, 255, 0.20);
-
-        color: #00d2ff;
-
-        font-size: 0.8rem;
-
-        font-weight: 700;
-
-        margin-bottom: 15px;
-    }
-
-    .hero-title {
-        font-size: 3.2rem;
-
-        font-weight: 800;
-
-        line-height: 1.1;
-
-        margin-bottom: 15px;
-
-        color: white;
-    }
-
-    .hero-title span {
-        color: #00d2ff;
-    }
-
-    .hero-description {
-        max-width: 700px;
-
-        color: #9ca8b8;
-
-        font-size: 1.05rem;
-
-        line-height: 1.7;
-    }
-
-
-    /* =====================================================
-       HOME IMAGE
-       ===================================================== */
-
-    .home-image {
-        display: flex;
-
-        justify-content: center;
-
-        margin: 35px 0;
-    }
-
-    .home-image img {
-        border-radius: 14px;
-
-        border: 1px solid
-            rgba(0, 210, 255, 0.25);
-
-        box-shadow:
-            0 10px 40px
-            rgba(0, 210, 255, 0.10);
+        background-color: #00a8cc;
+        color: #0b0e14;
     }
 
 
@@ -288,170 +136,211 @@ st.markdown(
        ===================================================== */
 
     .feature-card {
-        height: 100%;
+        background-color: #191c22;
 
-        padding: 25px;
+        padding: 24px;
 
-        border-radius: 14px;
-
-        background:
-            rgba(20, 25, 34, 0.85);
+        border-radius: 8px;
 
         border: 1px solid
-            rgba(255,255,255,0.06);
+        rgba(133, 142, 161, 0.2);
+
+        text-align: center;
+
+        min-height: 190px;
 
         transition:
-            transform 0.25s ease,
-            border-color 0.25s ease,
-            background 0.25s ease;
+            transform 0.2s ease,
+            border-color 0.2s ease;
     }
+
 
     .feature-card:hover {
         transform: translateY(-5px);
 
         border-color:
-            rgba(0, 210, 255, 0.30);
-
-        background:
-            rgba(24, 31, 42, 0.95);
+        rgba(0, 210, 255, 0.45);
     }
+
 
     .feature-icon {
-        width: 48px;
-        height: 48px;
+        font-size: 2rem;
 
-        display: flex;
+        color: #00d2ff;
 
-        align-items: center;
-        justify-content: center;
-
-        border-radius: 12px;
-
-        background:
-            rgba(0, 210, 255, 0.10);
-
-        font-size: 1.5rem;
-
-        margin-bottom: 18px;
-    }
-
-    .feature-title {
-        color: white;
-
-        font-size: 1.05rem;
-
-        font-weight: 700;
-
-        margin-bottom: 8px;
-    }
-
-    .feature-text {
-        color: #8d99a9;
-
-        font-size: 0.88rem;
-
-        line-height: 1.6;
+        margin-bottom: 12px;
     }
 
 
     /* =====================================================
-       SECTION HEADER
+       STATUS BAR
        ===================================================== */
 
-    .section-header {
+    .status-bar {
+        font-family: 'Courier New', monospace;
+
+        font-size: 0.8rem;
+
+        color: #858ea1;
+
+        padding-top: 20px;
+
         margin-top: 40px;
-        margin-bottom: 20px;
     }
 
-    .section-label {
+
+    /* =====================================================
+       FLOATING IMAGE - FIXED CORNER
+       ===================================================== */
+
+    .floating-img {
+
+        position: fixed;
+
+        bottom: 20px;
+
+        right: 20px;
+
+        width: 120px;
+
+        z-index: 9999;
+
+        animation:
+        floatY 3s ease-in-out infinite;
+
+        filter:
+        drop-shadow(
+            0 0 12px
+            rgba(0, 210, 255, 0.4)
+        );
+    }
+
+
+    /* =====================================================
+       FLOATING IMAGE - INLINE
+       ===================================================== */
+
+    .floating-inline {
+
+        animation:
+        floatY 3s ease-in-out infinite;
+
+        border-radius: 8px;
+
+        filter:
+        drop-shadow(
+            0 0 15px
+            rgba(0, 210, 255, 0.35)
+        );
+    }
+
+
+    /* =====================================================
+       FLOATING ANIMATION
+       ===================================================== */
+
+    @keyframes floatY {
+
+        0% {
+            transform: translateY(0px);
+        }
+
+        50% {
+            transform: translateY(-15px);
+        }
+
+        100% {
+            transform: translateY(0px);
+        }
+
+    }
+
+
+    /* =====================================================
+       HERO SECTION
+       ===================================================== */
+
+    .hero-box {
+
+        background-color: #11151d;
+
+        border: 1px solid
+        rgba(0, 210, 255, 0.15);
+
+        border-radius: 12px;
+
+        padding: 35px;
+
+        margin-bottom: 25px;
+
+        text-align: center;
+    }
+
+
+    .hero-tag {
+
         color: #00d2ff;
 
         font-size: 0.75rem;
 
-        font-weight: 700;
+        font-weight: bold;
 
-        letter-spacing: 1.5px;
+        letter-spacing: 2px;
 
-        text-transform: uppercase;
+        margin-bottom: 12px;
     }
 
-    .section-title {
-        color: white;
 
-        font-size: 1.8rem;
+    .hero-title {
 
-        font-weight: 750;
+        color: #ffffff;
 
-        margin-top: 4px;
+        font-size: 2.8rem;
+
+        font-weight: 800;
+
+        line-height: 1.2;
+
+        margin-bottom: 15px;
+    }
+
+
+    .hero-title span {
+
+        color: #00d2ff;
+    }
+
+
+    .hero-description {
+
+        color: #858ea1;
+
+        font-size: 1rem;
+
+        line-height: 1.6;
+
+        max-width: 700px;
+
+        margin: auto;
     }
 
 
     /* =====================================================
-       AUTH HEADER
+       AUTHENTICATION CARD
        ===================================================== */
 
-    .auth-header {
-        text-align: center;
+    .auth-card {
 
-        margin-bottom: 25px;
-    }
-
-    .auth-icon {
-        width: 60px;
-        height: 60px;
-
-        margin: 0 auto 15px auto;
-
-        display: flex;
-
-        align-items: center;
-        justify-content: center;
-
-        border-radius: 16px;
-
-        background:
-            rgba(0, 210, 255, 0.10);
+        background-color: #191c22;
 
         border: 1px solid
-            rgba(0, 210, 255, 0.20);
+        rgba(133, 142, 161, 0.2);
 
-        font-size: 1.7rem;
-    }
+        border-radius: 10px;
 
+        padding: 25px;
 
-    /* =====================================================
-       INPUT FIELDS
-       ===================================================== */
-
-    div[data-baseweb="input"] {
-        background-color: #111720 !important;
-
-        border-radius: 8px !important;
-
-        border: 1px solid
-            rgba(255,255,255,0.07) !important;
-    }
-
-    div[data-baseweb="input"]:focus-within {
-        border-color:
-            rgba(0, 210, 255, 0.50) !important;
-    }
-
-
-    /* =====================================================
-       UPLOAD BOX
-       ===================================================== */
-
-    [data-testid="stFileUploader"] {
-        background:
-            rgba(17, 23, 32, 0.8);
-
-        border-radius: 14px;
-
-        border: 1px dashed
-            rgba(0, 210, 255, 0.30);
-
-        padding: 10px;
+        margin-bottom: 20px;
     }
 
 
@@ -460,15 +349,15 @@ st.markdown(
        ===================================================== */
 
     .dashboard-card {
-        padding: 28px;
 
-        border-radius: 16px;
-
-        background:
-            rgba(17, 23, 32, 0.85);
+        background-color: #191c22;
 
         border: 1px solid
-            rgba(255,255,255,0.06);
+        rgba(133, 142, 161, 0.2);
+
+        border-radius: 10px;
+
+        padding: 25px;
 
         margin-bottom: 20px;
     }
@@ -479,41 +368,41 @@ st.markdown(
        ===================================================== */
 
     .result-card {
-        margin-top: 20px;
 
-        padding: 28px;
+        background-color: #191c22;
 
-        border-radius: 16px;
+        border: 1px solid
+        rgba(0, 210, 255, 0.25);
+
+        border-radius: 10px;
+
+        padding: 25px;
 
         text-align: center;
 
-        background:
-            linear-gradient(
-                135deg,
-                rgba(0, 210, 255, 0.08),
-                rgba(17, 23, 32, 0.9)
-            );
-
-        border: 1px solid
-            rgba(0, 210, 255, 0.20);
+        margin-top: 20px;
     }
 
-    .result-label {
-        color: #8d99a9;
+
+    .result-title {
+
+        color: #858ea1;
 
         font-size: 0.8rem;
 
-        text-transform: uppercase;
+        letter-spacing: 2px;
 
-        letter-spacing: 1.5px;
+        text-transform: uppercase;
     }
 
+
     .result-value {
+
         color: #00d2ff;
 
-        font-size: 2.3rem;
+        font-size: 2.2rem;
 
-        font-weight: 800;
+        font-weight: bold;
 
         margin-top: 8px;
     }
@@ -524,46 +413,17 @@ st.markdown(
        ===================================================== */
 
     .user-card {
-        padding: 20px;
 
-        border-radius: 12px;
-
-        background:
-            #111720;
+        background-color: #191c22;
 
         border: 1px solid
-            rgba(255,255,255,0.06);
-
-        margin-bottom: 10px;
-    }
-
-
-    /* =====================================================
-       INFO BAR
-       ===================================================== */
-
-    .info-bar {
-        display: flex;
-
-        align-items: center;
-
-        gap: 10px;
-
-        padding: 12px 15px;
-
-        margin-bottom: 20px;
+        rgba(133, 142, 161, 0.2);
 
         border-radius: 8px;
 
-        background:
-            rgba(0, 210, 255, 0.06);
+        padding: 18px;
 
-        border: 1px solid
-            rgba(0, 210, 255, 0.12);
-
-        color: #9ca8b8;
-
-        font-size: 0.85rem;
+        margin-bottom: 10px;
     }
 
 
@@ -572,35 +432,24 @@ st.markdown(
        ===================================================== */
 
     .footer {
+
         text-align: center;
 
-        color: #596575;
+        color: #555e6d;
 
         font-size: 0.75rem;
 
-        margin-top: 60px;
+        margin-top: 50px;
 
         padding-top: 20px;
 
-        border-top: 1px solid
-            rgba(255,255,255,0.05);
-    }
-
-
-    /* =====================================================
-       HIDE DEFAULT STREAMLIT MENU / FOOTER
-       ===================================================== */
-
-    #MainMenu {
-        visibility: hidden;
-    }
-
-    footer {
-        visibility: hidden;
+        border-top:
+        1px solid
+        rgba(133, 142, 161, 0.1);
     }
 
     </style>
-    """,
+    ''',
     unsafe_allow_html=True
 )
 
@@ -613,7 +462,11 @@ if not st.session_state["logged_in"]:
 
     menu = st.sidebar.selectbox(
         "Navigate",
-        ["Home", "Register", "Login"]
+        [
+            "Home",
+            "Register",
+            "Login"
+        ]
     )
 
 else:
@@ -622,26 +475,36 @@ else:
 
         menu = st.sidebar.selectbox(
             "Navigate",
-            ["Home", "Admin Panel"]
+            [
+                "Home",
+                "Admin Panel"
+            ]
         )
 
     else:
 
         menu = st.sidebar.selectbox(
             "Navigate",
-            ["Home", "Dashboard"]
+            [
+                "Home",
+                "Dashboard"
+            ]
         )
+
 
     st.sidebar.divider()
 
-    st.sidebar.caption(
-        f"Logged in as: {st.session_state['user_name']}"
+    st.sidebar.write(
+        f"Logged in as: **{st.session_state['user_name']}**"
     )
+
 
     if st.sidebar.button("Logout"):
 
         st.session_state["logged_in"] = False
+
         st.session_state["user_role"] = None
+
         st.session_state["user_name"] = None
 
         st.rerun()
@@ -658,8 +521,8 @@ if menu == "Home":
     # -----------------------------------------------------
 
     st.markdown(
-        """
-        <div class="hero">
+        '''
+        <div class="hero-box">
 
             <div class="hero-tag">
                 AI-POWERED MEDIA FORENSICS
@@ -677,7 +540,7 @@ if menu == "Home":
             </div>
 
         </div>
-        """,
+        ''',
         unsafe_allow_html=True
     )
 
@@ -694,29 +557,37 @@ if menu == "Home":
     )
 
 
-    if os.path.exists(image_path):
+    img_b64 = get_base64(image_path)
+
+
+    if img_b64:
 
         st.markdown(
-            '<div class="home-image">',
-            unsafe_allow_html=True
-        )
+            f'''
+            <div style="
+                display:flex;
+                justify-content:center;
+                align-items:center;
+                margin:30px 0 40px 0;
+            ">
 
-        st.image(
-            image_path,
-            width=210
-        )
+                <img
+                    src="data:image/jpeg;base64,{img_b64}"
+                    class="floating-inline"
+                    width="200"
+                >
 
-        st.markdown(
-            '</div>',
+            </div>
+            ''',
             unsafe_allow_html=True
         )
 
     else:
 
-        st.warning(
-            "image2.jpg was not found. "
-            "Please place image2.jpg in the same "
-            "folder as this Python file."
+        st.error(
+            "image2.jpg not found. "
+            "Please put image2.jpg in the same "
+            "folder as app.py."
         )
 
 
@@ -726,15 +597,23 @@ if menu == "Home":
 
     st.markdown(
         """
-        <div class="section-header">
+        <div style="
+            text-align:center;
+            margin-bottom:25px;
+        ">
 
-            <div class="section-label">
-                CORE CAPABILITIES
+            <div style="
+                color:#00d2ff;
+                font-size:0.75rem;
+                font-weight:bold;
+                letter-spacing:2px;
+            ">
+                CORE FEATURES
             </div>
 
-            <div class="section-title">
-                Built for reliable image analysis
-            </div>
+            <h2>
+                Intelligent DeepFake Detection
+            </h2>
 
         </div>
         """,
@@ -748,24 +627,26 @@ if menu == "Home":
     with col1:
 
         st.markdown(
-            """
+            '''
             <div class="feature-card">
 
                 <div class="feature-icon">
                     🧠
                 </div>
 
-                <div class="feature-title">
+                <h4>
                     Deep Learning
-                </div>
+                </h4>
 
-                <div class="feature-text">
-                    CNN-based analysis designed to identify
-                    visual patterns associated with DeepFakes.
-                </div>
+                <p>
+                    <small>
+                        Built with CNNs for accurate
+                        DeepFake detection.
+                    </small>
+                </p>
 
             </div>
-            """,
+            ''',
             unsafe_allow_html=True
         )
 
@@ -773,24 +654,26 @@ if menu == "Home":
     with col2:
 
         st.markdown(
-            """
+            '''
             <div class="feature-card">
 
                 <div class="feature-icon">
                     🔍
                 </div>
 
-                <div class="feature-title">
+                <h4>
                     Image Analysis
-                </div>
+                </h4>
 
-                <div class="feature-text">
-                    Images are resized and normalized before
-                    being processed by the detection model.
-                </div>
+                <p>
+                    <small>
+                        Advanced preprocessing and
+                        feature extraction.
+                    </small>
+                </p>
 
             </div>
-            """,
+            ''',
             unsafe_allow_html=True
         )
 
@@ -798,24 +681,26 @@ if menu == "Home":
     with col3:
 
         st.markdown(
-            """
+            '''
             <div class="feature-card">
 
                 <div class="feature-icon">
                     🛡️
                 </div>
 
-                <div class="feature-title">
-                    Reliable Detection
-                </div>
+                <h4>
+                    High Accuracy
+                </h4>
 
-                <div class="feature-text">
-                    A trained classification model provides
-                    a straightforward real or fake prediction.
-                </div>
+                <p>
+                    <small>
+                        Trained on diverse datasets
+                        for reliable classification.
+                    </small>
+                </p>
 
             </div>
-            """,
+            ''',
             unsafe_allow_html=True
         )
 
@@ -823,26 +708,61 @@ if menu == "Home":
     with col4:
 
         st.markdown(
-            """
+            '''
             <div class="feature-card">
 
                 <div class="feature-icon">
                     ⚡
                 </div>
 
-                <div class="feature-title">
-                    Fast Prediction
-                </div>
+                <h4>
+                    Real-time Prediction
+                </h4>
 
-                <div class="feature-text">
-                    Upload an image and receive the model's
-                    classification within seconds.
-                </div>
+                <p>
+                    <small>
+                        Optimized pipeline for
+                        instant results.
+                    </small>
+                </p>
 
             </div>
-            """,
+            ''',
             unsafe_allow_html=True
         )
+
+
+    # -----------------------------------------------------
+    # STATUS BAR
+    # -----------------------------------------------------
+
+    st.markdown(
+        '''
+        <div class="status-bar">
+
+            SYSTEM STATUS:
+            <span style="color:#00d2ff;">
+                ● ONLINE
+            </span>
+
+            &nbsp;&nbsp;|&nbsp;&nbsp;
+
+            AI ENGINE:
+            <span style="color:#00d2ff;">
+                READY
+            </span>
+
+            &nbsp;&nbsp;|&nbsp;&nbsp;
+
+            MODEL:
+            <span style="color:#00d2ff;">
+                CNN
+            </span>
+
+        </div>
+        ''',
+        unsafe_allow_html=True
+    )
 
 
     # -----------------------------------------------------
@@ -850,11 +770,14 @@ if menu == "Home":
     # -----------------------------------------------------
 
     st.markdown(
-        """
+        '''
         <div class="footer">
-            DeepGuard • DeepFake Face Classification System
+
+            DeepFake Face Classification System
+            • AI/ML Project
+
         </div>
-        """,
+        ''',
         unsafe_allow_html=True
     )
 
@@ -865,23 +788,10 @@ if menu == "Home":
 
 elif menu == "Register":
 
-    st.markdown(
-        """
-        <div class="auth-header">
+    st.title("Create Your Account")
 
-            <div class="auth-icon">
-                👤
-            </div>
-
-            <h1>Create Account</h1>
-
-            <p style="color:#8d99a9;">
-                Register to access the DeepFake detection system.
-            </p>
-
-        </div>
-        """,
-        unsafe_allow_html=True
+    st.write(
+        "Register to access the DeepFake detection system."
     )
 
 
@@ -893,19 +803,18 @@ elif menu == "Register":
         with col1:
 
             name = st.text_input(
-                "Full Name",
+                "Name",
                 placeholder="Enter your name"
             )
 
             email = st.text_input(
                 "Email",
-                placeholder="example@email.com"
+                placeholder="Enter your email"
             )
 
             password = st.text_input(
                 "Password",
-                type="password",
-                placeholder="Create a password"
+                type="password"
             )
 
 
@@ -923,16 +832,12 @@ elif menu == "Register":
 
             confirm_password = st.text_input(
                 "Confirm Password",
-                type="password",
-                placeholder="Re-enter password"
+                type="password"
             )
 
 
-        st.write("")
-
-
         submitted = st.form_submit_button(
-            "Create Account"
+            "Register"
         )
 
 
@@ -966,7 +871,13 @@ elif menu == "Register":
                     c.execute(
                         """
                         INSERT INTO users
-                        (name, city, email, mobile, password)
+                        (
+                            name,
+                            city,
+                            email,
+                            mobile,
+                            password
+                        )
                         VALUES (?, ?, ?, ?, ?)
                         """,
                         (
@@ -981,14 +892,14 @@ elif menu == "Register":
                     conn.commit()
 
                     st.success(
-                        "Account created successfully. "
-                        "You can now log in."
+                        "Registration successful! "
+                        "Please login."
                     )
 
                 except sqlite3.IntegrityError:
 
                     st.error(
-                        "This email is already registered."
+                        "Email already registered."
                     )
 
 
@@ -998,26 +909,6 @@ elif menu == "Register":
 
 elif menu == "Login":
 
-    st.markdown(
-        """
-        <div class="auth-header">
-
-            <div class="auth-icon">
-                🔐
-            </div>
-
-            <h1>Welcome Back</h1>
-
-            <p style="color:#8d99a9;">
-                Sign in to access DeepGuard.
-            </p>
-
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-
     col1, col2, col3 = st.columns(
         [1, 2, 1]
     )
@@ -1025,22 +916,49 @@ elif menu == "Login":
 
     with col2:
 
-        login_email = st.text_input(
-            "Email Address",
-            placeholder="Enter your email"
+        st.markdown(
+            '''
+            <div style="
+                text-align:center;
+                margin-bottom:25px;
+            ">
+
+                <div style="
+                    font-size:2.5rem;
+                ">
+                    🔐
+                </div>
+
+                <h1>
+                    Login
+                </h1>
+
+                <p style="
+                    color:#858ea1;
+                ">
+                    Access the DeepFake Detection System
+                </p>
+
+            </div>
+            ''',
+            unsafe_allow_html=True
         )
+
+
+        login_email = st.text_input(
+            "Email Address"
+        )
+
 
         login_password = st.text_input(
             "Password",
-            type="password",
-            placeholder="Enter your password"
+            type="password"
         )
 
 
-        st.write("")
-
-
-        if st.button("Sign In"):
+        if st.button(
+            "Login"
+        ):
 
             # -------------------------------------------------
             # ADMIN LOGIN
@@ -1052,11 +970,13 @@ elif menu == "Login":
             ):
 
                 st.session_state["logged_in"] = True
+
                 st.session_state["user_role"] = "admin"
+
                 st.session_state["user_name"] = "Administrator"
 
                 st.success(
-                    "Administrator access granted."
+                    "Admin login successful."
                 )
 
                 st.rerun()
@@ -1072,8 +992,8 @@ elif menu == "Login":
                     """
                     SELECT *
                     FROM users
-                    WHERE email = ?
-                    AND password = ?
+                    WHERE email=?
+                    AND password=?
                     """,
                     (
                         login_email,
@@ -1081,17 +1001,20 @@ elif menu == "Login":
                     )
                 )
 
+
                 user = c.fetchone()
 
 
                 if user:
 
                     st.session_state["logged_in"] = True
+
                     st.session_state["user_role"] = "user"
+
                     st.session_state["user_name"] = user[1]
 
                     st.success(
-                        "Login successful."
+                        "User login successful."
                     )
 
                     st.rerun()
@@ -1099,7 +1022,7 @@ elif menu == "Login":
                 else:
 
                     st.error(
-                        "Invalid email or password."
+                        "Invalid credentials."
                     )
 
 
@@ -1111,55 +1034,39 @@ elif menu == "Admin Panel":
 
     if (
         st.session_state["logged_in"]
-        and st.session_state["user_role"] == "admin"
+        and
+        st.session_state["user_role"] == "admin"
     ):
 
-        st.markdown(
-            """
-            <div class="section-header">
+        st.title(
+            "Admin Panel"
+        )
 
-                <div class="section-label">
-                    ADMINISTRATION
-                </div>
-
-                <div class="section-title">
-                    User Management
-                </div>
-
-            </div>
-            """,
-            unsafe_allow_html=True
+        st.write(
+            "Manage registered users."
         )
 
 
         c.execute(
             """
-            SELECT id, name, city, email, mobile
+            SELECT
+                id,
+                name,
+                city,
+                email,
+                mobile
             FROM users
             """
         )
 
+
         users = c.fetchall()
-
-
-        st.markdown(
-            f"""
-            <div class="info-bar">
-                👥
-                <span>
-                    <strong>{len(users)}</strong>
-                    registered user(s)
-                </span>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
 
 
         if not users:
 
             st.info(
-                "No registered users found."
+                "No registered users."
             )
 
 
@@ -1169,6 +1076,7 @@ elif menu == "Admin Panel":
 
                 user_id, name, city, email, mobile = user
 
+
                 col1, col2 = st.columns(
                     [5, 1]
                 )
@@ -1177,32 +1085,32 @@ elif menu == "Admin Panel":
                 with col1:
 
                     st.markdown(
-                        f"""
+                        f'''
                         <div class="user-card">
 
-                            <strong style="color:white;">
+                            <strong>
                                 {name}
                             </strong>
 
-                            <br><br>
+                            <br>
 
-                            <span style="color:#8d99a9;">
-                                📧 {email}
-                                &nbsp;&nbsp;
-                                📍 {city}
-                                &nbsp;&nbsp;
-                                📱 {mobile}
+                            <span style="
+                                color:#858ea1;
+                            ">
+                                Email: {email}
+                                <br>
+                                City: {city}
+                                <br>
+                                Mobile: {mobile}
                             </span>
 
                         </div>
-                        """,
+                        ''',
                         unsafe_allow_html=True
                     )
 
 
                 with col2:
-
-                    st.write("")
 
                     if st.button(
                         "Delete",
@@ -1212,7 +1120,7 @@ elif menu == "Admin Panel":
                         c.execute(
                             """
                             DELETE FROM users
-                            WHERE id = ?
+                            WHERE id=?
                             """,
                             (user_id,)
                         )
@@ -1220,7 +1128,7 @@ elif menu == "Admin Panel":
                         conn.commit()
 
                         st.success(
-                            f"{email} deleted."
+                            "User deleted."
                         )
 
                         st.rerun()
@@ -1241,28 +1149,18 @@ elif menu == "Dashboard":
 
     if (
         st.session_state["logged_in"]
-        and st.session_state["user_role"] == "user"
+        and
+        st.session_state["user_role"] == "user"
     ):
 
-        # -----------------------------------------------------
-        # HEADER
-        # -----------------------------------------------------
+        st.title(
+            f"Welcome, {st.session_state['user_name']} 👋"
+        )
 
-        st.markdown(
-            f"""
-            <div class="section-header">
 
-                <div class="section-label">
-                    AI DETECTION SYSTEM
-                </div>
-
-                <div class="section-title">
-                    Welcome, {st.session_state["user_name"]}
-                </div>
-
-            </div>
-            """,
-            unsafe_allow_html=True
+        st.write(
+            "Upload a face image to detect whether "
+            "it is Real or DeepFake."
         )
 
 
@@ -1276,8 +1174,9 @@ elif menu == "Dashboard":
 
             import gdown
 
+
             with st.spinner(
-                "Preparing DeepFake detection model..."
+                "Downloading DeepFake model..."
             ):
 
                 gdown.download(
@@ -1300,56 +1199,29 @@ elif menu == "Dashboard":
         except Exception as e:
 
             st.error(
-                f"Unable to load model: {e}"
+                f"Error loading model: {e}"
             )
 
             st.stop()
 
 
         # -----------------------------------------------------
-        # DETECTION CARD
-        # -----------------------------------------------------
-
-        st.markdown(
-            """
-            <div class="dashboard-card">
-
-                <h3>
-                    🔎 Image Verification
-                </h3>
-
-                <p style="color:#8d99a9;">
-                    Upload a facial image and the trained
-                    deep learning model will classify it as
-                    Real or DeepFake.
-                </p>
-
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-
-        # -----------------------------------------------------
-        # IMAGE UPLOADER
+        # UPLOAD IMAGE
         # -----------------------------------------------------
 
         uploaded_file = st.file_uploader(
-            "Upload image",
+            "Choose an image",
             type=[
                 "jpg",
                 "jpeg",
                 "png"
-            ],
-            help="Supported formats: JPG, JPEG and PNG"
+            ]
         )
 
 
         if uploaded_file is not None:
 
-            col1, col2 = st.columns(
-                [1.1, 0.9]
-            )
+            col1, col2 = st.columns(2)
 
 
             # -------------------------------------------------
@@ -1362,6 +1234,7 @@ elif menu == "Dashboard":
                     uploaded_file
                 ).convert("RGB")
 
+
                 st.image(
                     image,
                     caption="Uploaded Image",
@@ -1370,7 +1243,7 @@ elif menu == "Dashboard":
 
 
             # -------------------------------------------------
-            # ANALYSIS
+            # PREDICTION
             # -------------------------------------------------
 
             with col2:
@@ -1380,12 +1253,15 @@ elif menu == "Dashboard":
                     <div class="dashboard-card">
 
                         <h3>
-                            AI Analysis
+                            AI Image Analysis
                         </h3>
 
-                        <p style="color:#8d99a9;">
-                            The image will be resized and
-                            normalized before classification.
+                        <p style="
+                            color:#858ea1;
+                        ">
+                            The image will be resized
+                            to 64 × 64 pixels and
+                            analyzed by the CNN model.
                         </p>
 
                     </div>
@@ -1399,7 +1275,7 @@ elif menu == "Dashboard":
                 ):
 
                     with st.spinner(
-                        "Analyzing image..."
+                        "Analyzing..."
                     ):
 
                         file_bytes = np.frombuffer(
@@ -1424,9 +1300,12 @@ elif menu == "Dashboard":
 
 
                             # Normalize
-                            img = img.astype(
-                                "float32"
-                            ) / 255.0
+                            img = (
+                                img.astype(
+                                    "float32"
+                                )
+                                / 255.0
+                            )
 
 
                             # Prediction
@@ -1441,7 +1320,7 @@ elif menu == "Dashboard":
                             )
 
 
-                            # Predicted class
+                            # Get class
                             prd = np.argmax(
                                 prediction,
                                 axis=1
@@ -1457,48 +1336,26 @@ elif menu == "Dashboard":
                             result = classes[prd]
 
 
-                            # ---------------------------------
+                            # -------------------------------------------------
                             # RESULT
-                            # ---------------------------------
+                            # -------------------------------------------------
 
-                            if result == "real":
+                            st.markdown(
+                                f"""
+                                <div class="result-card">
 
-                                st.markdown(
-                                    """
-                                    <div class="result-card">
-
-                                        <div class="result-label">
-                                            Detection Result
-                                        </div>
-
-                                        <div class="result-value">
-                                            ✓ REAL
-                                        </div>
-
+                                    <div class="result-title">
+                                        Detection Result
                                     </div>
-                                    """,
-                                    unsafe_allow_html=True
-                                )
 
-
-                            else:
-
-                                st.markdown(
-                                    """
-                                    <div class="result-card">
-
-                                        <div class="result-label">
-                                            Detection Result
-                                        </div>
-
-                                        <div class="result-value">
-                                            ⚠ DEEPFAKE
-                                        </div>
-
+                                    <div class="result-value">
+                                        {result.upper()}
                                     </div>
-                                    """,
-                                    unsafe_allow_html=True
-                                )
+
+                                </div>
+                                """,
+                                unsafe_allow_html=True
+                            )
 
 
                         else:

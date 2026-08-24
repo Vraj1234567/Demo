@@ -1,3 +1,4 @@
+```python
 import streamlit as st
 import sqlite3
 import cv2
@@ -5,7 +6,6 @@ import numpy as np
 from tensorflow import keras
 from PIL import Image
 import os
-import base64
 
 
 # =========================================================
@@ -24,7 +24,11 @@ st.set_page_config(
 # DATABASE
 # =========================================================
 
-conn = sqlite3.connect("users.db", check_same_thread=False)
+conn = sqlite3.connect(
+    "users.db",
+    check_same_thread=False
+)
+
 c = conn.cursor()
 
 c.execute("""
@@ -108,12 +112,6 @@ st.markdown(
         border-right: 1px solid rgba(255,255,255,0.06);
     }
 
-    section[data-testid="stSidebar"] h1,
-    section[data-testid="stSidebar"] h2,
-    section[data-testid="stSidebar"] h3 {
-        color: white;
-    }
-
 
     /* =====================================================
        HEADINGS
@@ -136,7 +134,10 @@ st.markdown(
 
     .stButton > button {
         width: 100%;
-        border: 1px solid rgba(0, 210, 255, 0.25);
+
+        border: 1px solid
+            rgba(0, 210, 255, 0.25);
+
         border-radius: 8px;
 
         background: linear-gradient(
@@ -146,6 +147,7 @@ st.markdown(
         );
 
         color: #061017;
+
         font-weight: 700;
 
         padding: 0.55rem 1rem;
@@ -159,12 +161,8 @@ st.markdown(
         transform: translateY(-2px);
 
         box-shadow:
-            0 8px 25px rgba(
-                0,
-                210,
-                255,
-                0.18
-            );
+            0 8px 25px
+            rgba(0, 210, 255, 0.18);
     }
 
 
@@ -259,6 +257,30 @@ st.markdown(
         font-size: 1.05rem;
 
         line-height: 1.7;
+    }
+
+
+    /* =====================================================
+       HOME IMAGE
+       ===================================================== */
+
+    .home-image {
+        display: flex;
+
+        justify-content: center;
+
+        margin: 35px 0;
+    }
+
+    .home-image img {
+        border-radius: 14px;
+
+        border: 1px solid
+            rgba(0, 210, 255, 0.25);
+
+        box-shadow:
+            0 10px 40px
+            rgba(0, 210, 255, 0.10);
     }
 
 
@@ -366,7 +388,7 @@ st.markdown(
 
 
     /* =====================================================
-       AUTH CARD
+       AUTH HEADER
        ===================================================== */
 
     .auth-header {
@@ -499,7 +521,7 @@ st.markdown(
 
 
     /* =====================================================
-       ADMIN USER CARD
+       USER CARD
        ===================================================== */
 
     .user-card {
@@ -567,7 +589,7 @@ st.markdown(
 
 
     /* =====================================================
-       HIDE STREAMLIT DEFAULT ELEMENTS
+       HIDE DEFAULT STREAMLIT MENU / FOOTER
        ===================================================== */
 
     #MainMenu {
@@ -662,51 +684,45 @@ if menu == "Home":
 
 
     # -----------------------------------------------------
-    # Image
+    # HOME IMAGE
     # -----------------------------------------------------
 
-    def get_base64(path):
+    image_path = os.path.join(
+        os.path.dirname(
+            os.path.abspath(__file__)
+        ),
+        "image2.jpg"
+    )
 
-        if not os.path.exists(path):
-            return None
 
-        with open(path, "rb") as f:
-            return base64.b64encode(f.read()).decode()
-
-
-    img_b64 = get_base64("image2.jpg")
-
-    if img_b64:
+    if os.path.exists(image_path):
 
         st.markdown(
-            f"""
-            <div style="
-                text-align:center;
-                margin-top:30px;
-                margin-bottom:30px;
-            ">
-
-                <img
-                    src="data:image/png;base64,{img_b64}"
-                    width="210"
-                    style="
-                        border-radius:14px;
-                        border:1px solid
-                        rgba(0,210,255,0.20);
-                        box-shadow:
-                        0 10px 40px
-                        rgba(0,210,255,0.08);
-                    "
-                >
-
-            </div>
-            """,
+            '<div class="home-image">',
             unsafe_allow_html=True
+        )
+
+        st.image(
+            image_path,
+            width=210
+        )
+
+        st.markdown(
+            '</div>',
+            unsafe_allow_html=True
+        )
+
+    else:
+
+        st.warning(
+            "image2.jpg was not found. "
+            "Please place image2.jpg in the same "
+            "folder as this Python file."
         )
 
 
     # -----------------------------------------------------
-    # Features
+    # FEATURES
     # -----------------------------------------------------
 
     st.markdown(
@@ -831,7 +847,7 @@ if menu == "Home":
 
 
     # -----------------------------------------------------
-    # Footer
+    # FOOTER
     # -----------------------------------------------------
 
     st.markdown(
@@ -874,6 +890,7 @@ elif menu == "Register":
 
         col1, col2 = st.columns(2)
 
+
         with col1:
 
             name = st.text_input(
@@ -914,6 +931,7 @@ elif menu == "Register":
 
         st.write("")
 
+
         submitted = st.form_submit_button(
             "Create Account"
         )
@@ -934,11 +952,13 @@ elif menu == "Register":
                     "Please fill in all fields."
                 )
 
+
             elif password != confirm_password:
 
                 st.error(
                     "Passwords do not match."
                 )
+
 
             else:
 
@@ -999,7 +1019,10 @@ elif menu == "Login":
     )
 
 
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns(
+        [1, 2, 1]
+    )
+
 
     with col2:
 
@@ -1014,11 +1037,11 @@ elif menu == "Login":
             placeholder="Enter your password"
         )
 
+
         st.write("")
 
-        if st.button(
-            "Sign In"
-        ):
+
+        if st.button("Sign In"):
 
             # -------------------------------------------------
             # ADMIN LOGIN
@@ -1120,10 +1143,6 @@ elif menu == "Admin Panel":
         users = c.fetchall()
 
 
-        # -----------------------------------------------------
-        # User Count
-        # -----------------------------------------------------
-
         st.markdown(
             f"""
             <div class="info-bar">
@@ -1143,6 +1162,7 @@ elif menu == "Admin Panel":
             st.info(
                 "No registered users found."
             )
+
 
         else:
 
@@ -1226,7 +1246,7 @@ elif menu == "Dashboard":
     ):
 
         # -----------------------------------------------------
-        # Dashboard Header
+        # HEADER
         # -----------------------------------------------------
 
         st.markdown(
@@ -1248,7 +1268,7 @@ elif menu == "Dashboard":
 
 
         # -----------------------------------------------------
-        # Model Download
+        # DOWNLOAD MODEL
         # -----------------------------------------------------
 
         if not os.path.exists(
@@ -1269,7 +1289,7 @@ elif menu == "Dashboard":
 
 
         # -----------------------------------------------------
-        # Load Model
+        # LOAD MODEL
         # -----------------------------------------------------
 
         try:
@@ -1288,7 +1308,7 @@ elif menu == "Dashboard":
 
 
         # -----------------------------------------------------
-        # Detection Card
+        # DETECTION CARD
         # -----------------------------------------------------
 
         st.markdown(
@@ -1312,7 +1332,7 @@ elif menu == "Dashboard":
 
 
         # -----------------------------------------------------
-        # File Upload
+        # IMAGE UPLOADER
         # -----------------------------------------------------
 
         uploaded_file = st.file_uploader(
@@ -1334,7 +1354,7 @@ elif menu == "Dashboard":
 
 
             # -------------------------------------------------
-            # Image Preview
+            # IMAGE PREVIEW
             # -------------------------------------------------
 
             with col1:
@@ -1351,7 +1371,7 @@ elif menu == "Dashboard":
 
 
             # -------------------------------------------------
-            # Prediction
+            # ANALYSIS
             # -------------------------------------------------
 
             with col2:
@@ -1383,11 +1403,11 @@ elif menu == "Dashboard":
                         "Analyzing image..."
                     ):
 
-                        # Read image
                         file_bytes = np.frombuffer(
                             uploaded_file.getvalue(),
                             dtype=np.uint8
                         )
+
 
                         img = cv2.imdecode(
                             file_bytes,
@@ -1402,6 +1422,7 @@ elif menu == "Dashboard":
                                 img,
                                 (64, 64)
                             )
+
 
                             # Normalize
                             img = img.astype(
@@ -1421,7 +1442,7 @@ elif menu == "Dashboard":
                             )
 
 
-                            # Get class
+                            # Predicted class
                             prd = np.argmax(
                                 prediction,
                                 axis=1
@@ -1438,7 +1459,7 @@ elif menu == "Dashboard":
 
 
                             # ---------------------------------
-                            # Result
+                            # RESULT
                             # ---------------------------------
 
                             if result == "real":
@@ -1451,9 +1472,7 @@ elif menu == "Dashboard":
                                             Detection Result
                                         </div>
 
-                                        <div
-                                            class="result-value"
-                                        >
+                                        <div class="result-value">
                                             ✓ REAL
                                         </div>
 
@@ -1461,6 +1480,7 @@ elif menu == "Dashboard":
                                     """,
                                     unsafe_allow_html=True
                                 )
+
 
                             else:
 
@@ -1472,9 +1492,7 @@ elif menu == "Dashboard":
                                             Detection Result
                                         </div>
 
-                                        <div
-                                            class="result-value"
-                                        >
+                                        <div class="result-value">
                                             ⚠ DEEPFAKE
                                         </div>
 
@@ -1496,3 +1514,4 @@ elif menu == "Dashboard":
         st.error(
             "Unauthorized access."
         )
+```

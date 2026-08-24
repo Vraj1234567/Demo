@@ -1,4 +1,3 @@
-```python
 import streamlit as st
 import sqlite3
 import cv2
@@ -1497,4 +1496,3 @@ elif menu == "Dashboard":
         st.error(
             "Unauthorized access."
         )
-```

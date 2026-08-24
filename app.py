@@ -249,6 +249,13 @@ st.markdown(
 
 # ---------------- HOME PAGE ----------------
 
+def get_base64(path):
+    if not os.path.exists(path):
+        st.error(f"Image not found at: {path}")
+        return None
+    with open(path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
+
 if menu == 'Home':
 
     st.title('DeepFake Face Classification')
@@ -257,79 +264,72 @@ if menu == 'Home':
         'DETECT WHETHER A FACE IMAGE IS REAL OR DEEPFAKE USING ADVANCED DEEP LEARNING TECHNIQUES'
     )
 
-def get_base64(path):
-    if not os.path.exists(path):
-        st.error(f"Image not found at: {path}")
-        return None
-    with open(path, "rb") as f:
-        return base64.b64encode(f.read()).decode()
+    img_b64 = get_base64("image2.jpg")
 
-img_b64 = get_base64("image2.jpg")
+    if img_b64:
+        # Fixed corner floating image
+        st.markdown(
+            f'<img src="data:image/png;base64,{img_b64}" class="floating-inline" width="200">',
+            unsafe_allow_html=True
+        )
+        col1, col2, col3, col4 = st.columns(4)
 
-if img_b64:
-    # Fixed corner floating image
-    st.markdown(
-        f'<img src="data:image/png;base64,{img_b64}" class="floating-inline" width="200">',
-        unsafe_allow_html=True
-    )
-    col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.markdown(
+                '''
+                <div class="feature-card">
+                    <div class="feature-icon">🧠</div>
+                    <h4>Deep Learning</h4>
+                    <p><small>Built with CNNs for accurate DeepFake detection</small></p>
+                </div>
+                ''',
+                unsafe_allow_html=True
+            )
 
-    with col1:
+        with col2:
+            st.markdown(
+                '''
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h4>Image Analysis</h4>
+                    <p><small>Advanced preprocessing and feature extraction</small></p>
+                </div>
+                ''',
+                unsafe_allow_html=True
+            )
+
+        with col3:
+            st.markdown(
+                '''
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h4>High Accuracy</h4>
+                    <p><small>Trained on diverse datasets for reliable classification</small></p>
+                </div>
+                ''',
+                unsafe_allow_html=True
+            )
+
+        with col4:
+            st.markdown(
+                '''
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h4>Real-time Prediction</h4>
+                    <p><small>Optimized pipeline for instant results</small></p>
+                </div>
+                ''',
+                unsafe_allow_html=True
+            )
+
         st.markdown(
             '''
-            <div class="feature-card">
-                <div class="feature-icon">🧠</div>
-                <h4>Deep Learning</h4>
-                <p><small>Built with CNNs for accurate DeepFake detection</small></p>
+            <div class="status-bar">
+                <span class="status-dot"></span>System online — model ready for inference
             </div>
             ''',
             unsafe_allow_html=True
         )
-
-    with col2:
-        st.markdown(
-            '''
-            <div class="feature-card">
-                <div class="feature-icon">🔍</div>
-                <h4>Image Analysis</h4>
-                <p><small>Advanced preprocessing and feature extraction</small></p>
-            </div>
-            ''',
-            unsafe_allow_html=True
-        )
-
-    with col3:
-        st.markdown(
-            '''
-            <div class="feature-card">
-                <div class="feature-icon">🛡️</div>
-                <h4>High Accuracy</h4>
-                <p><small>Trained on diverse datasets for reliable classification</small></p>
-            </div>
-            ''',
-            unsafe_allow_html=True
-        )
-
-    with col4:
-        st.markdown(
-            '''
-            <div class="feature-card">
-                <div class="feature-icon">⚡</div>
-                <h4>Real-time Prediction</h4>
-                <p><small>Optimized pipeline for instant results</small></p>
-            </div>
-            ''',
-            unsafe_allow_html=True
-        )
-
-    st.markdown(
-        '''
-        <div class="status-bar">
-            <span class="status-dot"></span>System online — model ready for inference
-        </div>
-        ''',
-        unsafe_allow_html=True
-    )
 
 # Register page
 elif menu == "Register":
